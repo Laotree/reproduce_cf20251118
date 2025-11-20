@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: zookeeper:3.8
+    container_name: zookeeper
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    volumes:
+      - ./zookeeper/data:/data
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper:2888:3888;2181
+
+  clickhouse-node1:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: clickhouse-node1
+    hostname: clickhouse-node1
+    ports:
+      - "8123:8123"   # HTTP
+      - "9000:9000"   # Native TCP
+      - "9009:9009"   # inter server HTTP
+    depends_on:
+      - zookeeper
+    volumes:
+      - ./clickhouse/node1/data:/var/lib/clickhouse
+      - ./zzz-cluster-config.xml:/etc/clickhouse-server/config.d/zzz-cluster-config.xml
+
+  clickhouse-node2:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: clickhouse-node2
+    hostname: clickhouse-node2
+    ports:
+      - "8124:8123"
+      - "9001:9000"
+      - "9010:9009"
+    depends_on:
+      - zookeeper
+    volumes:
+      - ./clickhouse/node2/data:/var/lib/clickhouse
+      - ./zzz-cluster-config.xml:/etc/clickhouse-server/config.d/zzz-cluster-config.xml
+
+  clickhouse-node3:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: clickhouse-node3
+    hostname: clickhouse-node3
+    ports:
+      - "8125:8123"
+      - "9002:9000"
+      - "9011:9009"
+    depends_on:
+      - zookeeper
+    volumes:
+      - ./clickhouse/node3/data:/var/lib/clickhouse
+      - ./zzz-cluster-config.xml:/etc/clickhouse-server/config.d/zzz-cluster-config.xml
