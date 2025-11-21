@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  customer-site:
+    image: python:3.11-slim
+    container_name: app-site
+    working_dir: /app
+    volumes:
+      - ./:/app:rw
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=443
+    ports:
+      - "8443:443"
+    command: bash -lc "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u app.py"
+    restart: unless-stopped
+    networks:
+      - cf-20251118
+
+  proxy-server-v1:
+    image: python:3.11-slim
+    container_name: proxy-server-v1
+    working_dir: /app
+    volumes:
+      - ./:/app:rw
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=50001
+    ports:
+      - "50001:50001"
+    command: bash -lc "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u v1.py"
+    restart: unless-stopped
+    networks:
+      - cf-20251118
+
+  proxy-server-v2:
+    image: python:3.11-slim
+    container_name: proxy-server-v2
+    working_dir: /app
+    volumes:
+      - ./:/app:rw
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=50002
+    ports:
+      - "50002:50002"
+    command: bash -lc "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u v2.py"
+    restart: unless-stopped
+    networks:
+      - cf-20251118
+
+
+networks:
+  cf-20251118:
+    external: true
