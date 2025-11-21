@@ -49,6 +49,21 @@ services:
     networks:
       - cf-20251118
 
+  proxy-server-v3:
+    image: python:3.11-slim
+    container_name: proxy-server-v3
+    working_dir: /app
+    volumes:
+      - ./:/app:rw
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=50003
+    ports:
+      - "50003:50003"
+    command: bash -lc "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u v3.py"
+    restart: unless-stopped
+    networks:
+      - cf-20251118
 
 networks:
   cf-20251118:
