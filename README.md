@@ -2,7 +2,7 @@
 
 reference [Cloudflare outage on November 18, 2025](https://blog.cloudflare.com/18-november-2025-outage/)
 
-## 准备工作
+## Prerequisites
 - docker and docker-compose
 ```bash my env
 docker --version
