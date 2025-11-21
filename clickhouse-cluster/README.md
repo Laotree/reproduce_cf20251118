@@ -29,6 +29,11 @@ Expected result:
 docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 -q "CREATE DATABASE IF NOT EXISTS r0 ON CLUSTER cluster_3shards_1replicas"
 ```
 
+Expected result:
+> clickhouse-node1        9000    0               2       0
+> clickhouse-node3        9000    0               1       0
+> clickhouse-node2        9000    0               0       0
+
 ## Create Local Table
 
 ```bash
@@ -69,7 +74,7 @@ docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 -q "
 docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 -q "GRANT SELECT ON default.http_requests_features TO test_user;"
 ```
 
-## Open Another Terminal and Query with Test User
+## Query with Test User
 
 ```bash
 docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 --user test_user --password test -q "SELECT name, type FROM system.columns WHERE table = 'http_requests_features' ORDER BY name"
@@ -87,7 +92,7 @@ Expected result:
 docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 -q "GRANT SELECT ON r0.* TO test_user"
 ```
 
-## Open Another Terminal and Query with Test User
+## Query with Test User
 
 ```bash
 docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 --user test_user --password test -q "SELECT name, type FROM system.columns WHERE table = 'http_requests_features' ORDER BY name"
