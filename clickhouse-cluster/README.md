@@ -107,5 +107,5 @@ Expected result:
 ## Revoke Permission
 
 ```bash
-docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 -q "REVOKE SELECT ON r0.* TO test_user"
+docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 -q "REVOKE SELECT ON r0.* FROM test_user"
 ```
