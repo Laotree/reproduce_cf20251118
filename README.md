@@ -1,114 +1,22 @@
-# Build a ClickHouse Distributed Cluster
+# Attempt to reproduce the Cloudflare 2025-11-18 outage.
 
-```bash
-docker-compose -f clickhouse-cluster/docker-compose.yml up -d
+reference [Cloudflare outage on November 18, 2025](https://blog.cloudflare.com/18-november-2025-outage/)
+
+## 准备工作
+- docker and docker-compose
+```bash my env
+docker --version
+Docker version 28.3.3, build 980b856
+
+docker-compose --version
+Docker Compose version 2.40.3
 ```
-
-Expected result:
-> clickhouse-node3
-
-> clickhouse-node2
-
-> clickhouse-node1
-
-> zookeeper
-
-## Verify Cluster Creation
-
-```bash
-docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 -q "SELECT cluster,shard_num,host_name FROM system.clusters WHERE cluster='cluster_3shards_1replicas'"
+- network
+```bash 
+docker network create -d bridge cf-20251118
 ```
-
-Expected result:
-> cluster_3shards_1replicas       1       clickhouse-node1
-
-> cluster_3shards_1replicas       2       clickhouse-node2
-
-> cluster_3shards_1replicas       3       clickhouse-node3
-
-# Create Database
-
-## Enter the Database Container
-
-```bash
-docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000
-```
-
-## Create r0 Database
-
-```sql
-CREATE DATABASE IF NOT EXISTS r0 ON CLUSTER cluster_3shards_1replicas;
-```
-
-## Create Local Table
-
-```sql
-CREATE TABLE r0.http_requests_features ON CLUSTER cluster_3shards_1replicas
-(
-    event_date Date,
-    request_id UInt64,
-    feature_1  String,
-    feature_2  Float64
-)
-ENGINE = MergeTree()
-ORDER BY request_id;
-```
-
-## Create Distributed Table
-
-```sql
-CREATE TABLE default.http_requests_features ON CLUSTER cluster_3shards_1replicas
-(
-    event_date Date,
-    request_id UInt64,
-    feature_1  String,
-    feature_2  Float64
-)
-ENGINE = Distributed(
-    'cluster_3shards_1replicas',
-    r0,                   
-    http_requests_features,      
-    rand()   
-);
-```
-
-## Create Test User and Grant Implicit Permission (Before Change)
-
-```sql
-CREATE USER test_user IDENTIFIED WITH plaintext_password BY 'test';
-GRANT SELECT ON default.http_requests_features TO test_user;
-```
-
-## Open Another Terminal and Query with Test User
-
-```bash
-docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 --user test_user --password test -q "SELECT name, type FROM system.columns WHERE table = 'http_requests_features' ORDER BY name"
-```
-
-Expected result:
-> event_date      Date  
-> feature_1       String  
-> feature_2       Float64  
-> request_id      UInt64  
-
-## Explicit Permission (ROOT CAUSE)
-
-```bash
-docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 -q "GRANT SELECT ON r0.* TO test_user"
-```
-
-## Open Another Terminal and Query with Test User
-
-```bash
-docker exec -it clickhouse-node1 clickhouse client -h 127.0.0.1 --port 9000 --user test_user --password test -q "SELECT name, type FROM system.columns WHERE table = 'http_requests_features' ORDER BY name"
-```
-
-Expected result:
-> event_date      Date  
-> event_date      Date  
-> feature_1       String  
-> feature_1       String  
-> feature_2       Float64  
-> feature_2       Float64  
-> request_id      UInt64  
-> request_id      UInt64
+## Implementation plan
+1. [Simulate running a ClickHouse cluster storing feature sets](clickhouse-cluster/README.md)
+2. [Simulate proxy engines with and without using feature sets](proxy-engines/README.md)
+3. [Simulate KV workers that distribute configuration](kv-workers/README.md)
+4. [Simulate the analytics service returning 500 statuses as the failure evolves](customer-visits/README.md)

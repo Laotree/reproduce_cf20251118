@@ -8,10 +8,12 @@ services:
     ports:
       - "2181:2181"
     volumes:
-      - ./zookeeper/data:/data
+      - ./.testdata/zookeeper/data:/data
     environment:
       ZOO_MY_ID: 1
       ZOO_SERVERS: server.1=zookeeper:2888:3888;2181
+    networks:
+      - cf-20251118
 
   clickhouse-node1:
     image: clickhouse/clickhouse-server:24.8
@@ -24,8 +26,10 @@ services:
     depends_on:
       - zookeeper
     volumes:
-      - ./clickhouse/node1/data:/var/lib/clickhouse
+      - ./.testdata/clickhouse/node1/data:/var/lib/clickhouse
       - ./zzz-cluster-config.xml:/etc/clickhouse-server/config.d/zzz-cluster-config.xml
+    networks:
+      - cf-20251118
 
   clickhouse-node2:
     image: clickhouse/clickhouse-server:24.8
@@ -38,8 +42,10 @@ services:
     depends_on:
       - zookeeper
     volumes:
-      - ./clickhouse/node2/data:/var/lib/clickhouse
+      - ./.testdata/clickhouse/node2/data:/var/lib/clickhouse
       - ./zzz-cluster-config.xml:/etc/clickhouse-server/config.d/zzz-cluster-config.xml
+    networks:
+      - cf-20251118
 
   clickhouse-node3:
     image: clickhouse/clickhouse-server:24.8
@@ -52,5 +58,11 @@ services:
     depends_on:
       - zookeeper
     volumes:
-      - ./clickhouse/node3/data:/var/lib/clickhouse
+      - ./.testdata/clickhouse/node3/data:/var/lib/clickhouse
       - ./zzz-cluster-config.xml:/etc/clickhouse-server/config.d/zzz-cluster-config.xml
+    networks:
+      - cf-20251118
+
+networks:
+  cf-20251118:
+    external: true
