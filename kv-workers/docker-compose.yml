@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  worker-asia:
+    image: python:3.11-slim
+    container_name: worker-asia
+    working_dir: /app
+    volumes:
+      - ./worker.py:/app/worker.py:ro
+      - ./requirements.txt:/app/requirements.txt:ro
+    command: bash -c "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u worker.py"
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    networks:
+      - cf-20251118
+
+  worker-europe:
+    image: python:3.11-slim
+    container_name: worker-europe
+    working_dir: /app
+    volumes:
+      - ./worker.py:/app/worker.py:ro
+      - ./requirements.txt:/app/requirements.txt:ro
+    command: bash -c "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u worker.py"
+    ports:
+      - "8082:8081"
+    restart: unless-stopped
+    networks:
+      - cf-20251118
+
+  worker-america:
+    image: python:3.11-slim
+    container_name: worker-america
+    working_dir: /app
+    volumes:
+      - ./worker.py:/app/worker.py:ro
+      - ./requirements.txt:/app/requirements.txt:ro
+    command: bash -c "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u worker.py"
+    ports:
+      - "8083:8081"
+    restart: unless-stopped
+    networks:
+      - cf-20251118
+
+
+networks:
+  cf-20251118:
+    external: true
