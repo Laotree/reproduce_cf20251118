@@ -170,7 +170,8 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
             names = list(_feature_names)
 
         if 2 < len(names) < 6:
-            msg = "Hello human, have a nice day!"
+            self._forward()
+            return
         else:
             msg = "Hello bot, have a nice day!"
             self._record_bot()          # 关键：这里计数 bot 请求
