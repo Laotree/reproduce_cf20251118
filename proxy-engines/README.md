@@ -1,15 +1,15 @@
-# Build three types of proxy engines
+# Build two types of proxy engines
 
 ## Customer app
 [a basic web app](app.py)
 
 ## Proxy Engines
 
-### Engines without bot scores
-[a basic HTTP proxy server](v1.py)
+### Engines known as FL with bot manager off
+[fl + IS_BOT_MANAGER_ON = false](fl.py)
 
-### Engines known as FL
-[a basic HTTP proxy server + bot scores](v2.py)
+### Engines known as FL with bot manager on
+[fl + IS_BOT_MANAGER_ON = true](fl.py)
 
 ### Engines known as FL2
-[a basic HTTP proxy server + bot scores + quick failure](v3.py)
+[fl + panic when syncing config](fl2.py)

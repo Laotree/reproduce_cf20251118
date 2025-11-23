@@ -4,6 +4,7 @@ import threading
 import json
 from collections import defaultdict
 import time
+import os 
 
 import http.server
 import http.client
@@ -14,10 +15,16 @@ import urllib.parse
 # ================================
 BACKEND_HOST = "customer-site"
 BACKEND_PORT = 443
-PROXY_PORT = 50002
+PROXY_PORT = 50001
 INTERVAL = 15   # 特征接口拉取间隔（秒）
 
 FEATURES_URL = "http://worker-asia:8081/bot_features"
+
+# ================================
+# Bot Manager Switch
+# ================================
+IS_BOT_MANAGER_ON = os.getenv("IS_BOT_MANAGER_ON", "false").lower() == "true"
+# true → 开启 bot 判断；否则关闭
 
 # ================================
 # 缓存 & 统计
@@ -98,7 +105,6 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
             _stats["by_path"][path] += 1
 
     def _record_bot(self):
-        """被判定为 bot 时调用"""
         global _bot_count
         with _bot_lock:
             _bot_count += 1
@@ -111,8 +117,10 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
                 "by_path": dict(_stats["by_path"]),
             }
         with _bot_lock:
-            payload["bot_requests"] = _bot_count          # 新增字段
-            payload["human_requests"] = _stats["total"] - _bot_count   # 可选：人类请求数
+            payload["bot_requests"] = _bot_count
+            payload["human_requests"] = _stats["total"] - _bot_count
+
+        payload["bot_manager_on"] = IS_BOT_MANAGER_ON
 
         body = json.dumps(payload, ensure_ascii=False, indent=2).encode()
         self.send_response(200)
@@ -122,20 +130,23 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     # ---------------------------
-    # AI logic（增加 bot 计数）
+    # AI logic（带开关）
     # ---------------------------
     def _serve_ai_check(self):
-        with _ck_cache_lock:
-            rows = _ck_last_row_count
-
-        if 2 < rows < 6:
+        """
+        bot manager 开关关闭时，直接返回 human。
+        """
+        if not IS_BOT_MANAGER_ON:
             msg = "Hello human, have a nice day!"
         else:
-            msg = "Hello bot, have a nice day!"
-            self._record_bot()          # 关键：这里计数 bot 请求
+            with _ck_cache_lock:
+                rows = _ck_last_row_count
 
-        # 为了统计准确，这里不计入普通 _record（因为没有转发到后端）
-        # 如果你希望 bot 请求也算进 total，可自行再调用 self._record(self.command, "/")
+            if 2 < rows < 6:
+                msg = "Hello human, have a nice day!"
+            else:
+                msg = "Hello bot, have a nice day!"
+                self._record_bot()
 
         body = msg.encode("utf-8")
         self.send_response(200)
@@ -187,6 +198,11 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         parsed = urllib.parse.urlsplit(self.path)
 
         if parsed.path == "/":
+            # 如果开关关闭 → 始终正常代理
+            if not IS_BOT_MANAGER_ON:
+                self._record("GET", parsed.path)
+                return self._forward()
+
             with _ck_cache_lock:
                 rows = _ck_last_row_count
 
@@ -206,6 +222,11 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         parsed = urllib.parse.urlsplit(self.path)
 
         if parsed.path == "/":
+            # 开关关闭 → 始终正常代理
+            if not IS_BOT_MANAGER_ON:
+                self._record("POST", parsed.path)
+                return self._forward()
+
             with _ck_cache_lock:
                 rows = _ck_last_row_count
 
@@ -237,8 +258,9 @@ def run_server():
     t = threading.Thread(target=features_background_worker, daemon=True)
     t.start()
 
+    print(f"Bot manager ON? {IS_BOT_MANAGER_ON}")
     server = ThreadingHTTPServer(("", PROXY_PORT), ProxyHandler)
-    print(f"Proxy v2 listening on 0.0.0.0:{PROXY_PORT}")
+    print(f"Proxy FL listening on 0.0.0.0:{PROXY_PORT}")
     print(f"Background features worker active, pulling {FEATURES_URL} every {INTERVAL}s...")
     try:
         server.serve_forever()
