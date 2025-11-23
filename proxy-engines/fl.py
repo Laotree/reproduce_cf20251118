@@ -136,18 +136,9 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         """
         bot manager 开关关闭时，直接返回 human。
         """
-        if not IS_BOT_MANAGER_ON:
-            msg = "Hello human, have a nice day!"
-        else:
-            with _ck_cache_lock:
-                rows = _ck_last_row_count
-
-            if 2 < rows < 6:
-                msg = "Hello human, have a nice day!"
-            else:
-                msg = "Hello bot, have a nice day!"
-                self._record_bot()
-
+        msg = "Hello bot, have a nice day!"
+        self._record_bot()
+                
         body = msg.encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "text/plain; charset=utf-8")
