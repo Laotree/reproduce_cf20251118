@@ -166,15 +166,8 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
     # AI bot 判断逻辑（可自行修改）
     # ===============================
     def _serve_ai_check(self):
-        with _feature_lock:
-            names = list(_feature_names)
-
-        if 2 < len(names) < 6:
-            msg = "Hello human, have a nice day!"
-        else:
-            msg = "Hello bot, have a nice day!"
-            self._record_bot()          # 关键：这里计数 bot 请求
-
+        msg = "Hello bot, have a nice day!\n"
+        self._record_bot()      
         body = msg.encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "text/plain; charset=utf-8")
@@ -222,7 +215,12 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         parsed = urllib.parse.urlsplit(self.path)
 
         if parsed.path == "/":
-            return self._serve_ai_check()
+            rows = len(_feature_names)
+            if 2 < rows < 6:
+                self._record("POST", parsed.path)
+                return self._forward()
+            else:
+                return self._serve_ai_check()
 
         if parsed.path == "/stats":
             return self._serve_stats()
@@ -259,7 +257,7 @@ def run_server():
     t.start()
 
     server = ThreadingHTTPServer(("", PROXY_PORT), ProxyHandler)
-    print(f"Proxy v3 listening on 0.0.0.0:{PROXY_PORT}")
+    print(f"Proxy FL2 listening on 0.0.0.0:{PROXY_PORT}")
     print(f"Background features worker active, pulling {FEATURES_URL} every {INTERVAL}s...")
     try:
         server.serve_forever()
