@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  customer-visits-benchmark:
+    image: python:3.11-slim
+    container_name: customer-visits-benchmark
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: bash -lc "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u benchmark.py"
+    restart: unless-stopped
+    networks:
+      - cf-20251118
+
+networks:
+  cf-20251118:
+    external: true

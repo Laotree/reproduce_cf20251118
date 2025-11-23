@@ -17,6 +17,6 @@ docker network create -d bridge cf-20251118
 ```
 ## Implementation plan
 1. [Simulate running a ClickHouse cluster storing feature sets](clickhouse-cluster/README.md)
-2. [Simulate proxy engines with and without using feature sets](proxy-engines/README.md)
-3. [Simulate KV workers that distribute configuration](kv-workers/README.md)
+2. [Simulate KV workers that distribute configuration](kv-workers/README.md)
+3. [Simulate proxy engines with and without using feature sets](proxy-engines/README.md)
 4. [Simulate the analytics service returning 500 statuses as the failure evolves](customer-visits/README.md)
