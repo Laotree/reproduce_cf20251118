@@ -134,9 +134,9 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
     # ---------------------------
     def _serve_ai_check(self):
         """
-        bot manager 开关关闭时，直接返回 human。
+        if bot manager off, forward all requests
         """
-        msg = "Hello bot, have a nice day!"
+        msg = "Hello bot, have a nice day!\n"
         self._record_bot()
                 
         body = msg.encode("utf-8")

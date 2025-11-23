@@ -166,7 +166,7 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
     # AI bot 判断逻辑（可自行修改）
     # ===============================
     def _serve_ai_check(self):
-        msg = "Hello bot, have a nice day!"
+        msg = "Hello bot, have a nice day!\n"
         self._record_bot()      
         body = msg.encode("utf-8")
         self.send_response(200)
