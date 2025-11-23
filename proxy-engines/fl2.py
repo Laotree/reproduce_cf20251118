@@ -28,7 +28,7 @@ threading.excepthook = _thread_excepthook
 # ================================
 BACKEND_HOST = "customer-site"
 BACKEND_PORT = 443
-PROXY_PORT = 50003
+PROXY_PORT = 50001
 INTERVAL = 15   # 特征接口拉取间隔（秒）
 
 FEATURES_URL = "http://worker-asia:8081/bot_features"

@@ -17,41 +17,43 @@ services:
     networks:
       - cf-20251118
 
-  proxy-server-v1:
+  proxy-server-fl-bot-manager-off:
     image: python:3.11-slim
-    container_name: proxy-server-v1
+    container_name: proxy-server-fl-bot-manager-off
     working_dir: /app
     volumes:
       - ./:/app:rw
     environment:
       - PYTHONUNBUFFERED=1
+      - IS_BOT_MANAGER_ON=false
       - PORT=50001
     ports:
       - "50001:50001"
-    command: bash -lc "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u v1.py"
+    command: bash -lc "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u fl.py"
     restart: unless-stopped
     networks:
       - cf-20251118
 
-  proxy-server-v2:
+  proxy-server-fl-bot-manager-on:
     image: python:3.11-slim
-    container_name: proxy-server-v2
+    container_name: proxy-server-fl-bot-manager-on
     working_dir: /app
     volumes:
       - ./:/app:rw
     environment:
       - PYTHONUNBUFFERED=1
+      - IS_BOT_MANAGER_ON=true
       - PORT=50002
     ports:
-      - "50002:50002"
-    command: bash -lc "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u v2.py"
+      - "50002:50001"
+    command: bash -lc "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u fl.py"
     restart: unless-stopped
     networks:
       - cf-20251118
 
-  proxy-server-v3:
+  proxy-server-fl2:
     image: python:3.11-slim
-    container_name: proxy-server-v3
+    container_name: proxy-server-fl2
     working_dir: /app
     volumes:
       - ./:/app:rw
@@ -59,8 +61,8 @@ services:
       - PYTHONUNBUFFERED=1
       - PORT=50003
     ports:
-      - "50003:50003"
-    command: bash -lc "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u v3.py"
+      - "50003:50001"
+    command: bash -lc "pip install --no-cache-dir -r requirements.txt >/dev/null 2>&1 || true && python -u fl2.py"
     restart: unless-stopped
     networks:
       - cf-20251118
